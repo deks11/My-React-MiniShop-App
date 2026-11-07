@@ -1,17 +1,25 @@
-
 import { useState, useEffect } from "react";
-import { Routes, Route, useParams } from "react-router-dom";
+
+import {
+  Routes,
+  Route,
+  useParams,
+  Navigate,
+} from "react-router-dom";
 
 import Header from "./components/Header";
 import Card from "./components/Card";
+
+import AuthPage from "./pages/AuthPage";
+import CartPage from "./pages/CartPage";
+import FavoritesPage from "./pages/FavoritesPage";
+
 import useFetch from "./hooks/useFetch";
+import { useAuth } from "./context/AuthContext";
 
 const PRODUCTS_PER_PAGE = 8;
 
-// =====================================
-// PAGINATION COMPONENT
-// =====================================
-
+// PAGINATION
 function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
 
@@ -46,12 +54,8 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   );
 }
 
-// =====================================
 // PRODUCT LIST
-// =====================================
-
 function ProductList({ products, loading, error }) {
-
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -66,7 +70,9 @@ function ProductList({ products, loading, error }) {
     return <h2 className="message">{error}</h2>;
   }
 
-  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+  const totalPages = Math.ceil(
+    products.length / PRODUCTS_PER_PAGE
+  );
 
   const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
 
@@ -87,7 +93,9 @@ function ProductList({ products, loading, error }) {
             />
           ))
         ) : (
-          <h2 className="message">No products found.</h2>
+          <h2 className="message">
+            No products found.
+          </h2>
         )}
 
       </div>
@@ -101,51 +109,50 @@ function ProductList({ products, loading, error }) {
   );
 }
 
-// =====================================
 // HOME PAGE
-// =====================================
-
 function Home({ search }) {
-
   const { data, loading, error } = useFetch(
     "https://dummyjson.com/products?limit=0"
   );
 
-  const filteredProducts = data?.products?.filter((product) =>
-    product.title.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  const filteredProducts =
+    data?.products?.filter((product) =>
+      product.title
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    ) || [];
 
   return (
     <section>
 
-      <h1 className="page-title">Our Products</h1>
+      <h1 className="page-title">
+        Our Products
+      </h1>
 
       <ProductList
         products={filteredProducts}
         loading={loading}
         error={error}
-        search={search}
       />
 
     </section>
   );
 }
 
-// =====================================
 // CATEGORY PAGE
-// =====================================
-
 function CategoryPage({ search }) {
-
   const { category } = useParams();
 
   const { data, loading, error } = useFetch(
     `https://dummyjson.com/products/category/${encodeURIComponent(category)}`
   );
 
-  const filteredProducts = data?.products?.filter((product) =>
-    product.title.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  const filteredProducts =
+    data?.products?.filter((product) =>
+      product.title
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    ) || [];
 
   return (
     <section>
@@ -158,24 +165,21 @@ function CategoryPage({ search }) {
         products={filteredProducts}
         loading={loading}
         error={error}
-        search={search}
       />
 
     </section>
   );
 }
 
-// =====================================
 // PRODUCT DETAILS
-// =====================================
-
 function ProductDetails() {
-
   const { id } = useParams();
 
-  const { data: product, loading, error } = useFetch(
-    `https://dummyjson.com/products/${id}`
-  );
+  const {
+    data: product,
+    loading,
+    error,
+  } = useFetch(`https://dummyjson.com/products/${id}`);
 
   if (loading) {
     return <h2 className="message">Loading product...</h2>;
@@ -221,11 +225,9 @@ function ProductDetails() {
   );
 }
 
-// =====================================
 // MAIN APP
-// =====================================
-
 function App() {
+  const { user } = useAuth();
 
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
@@ -236,11 +238,10 @@ function App() {
   const {
     data: categories,
     loading: categoriesLoading,
-    error: categoriesError
+    error: categoriesError,
   } = useFetch("https://dummyjson.com/products/categories");
 
   useEffect(() => {
-
     localStorage.setItem(
       "theme",
       darkMode ? "dark" : "light"
@@ -250,8 +251,11 @@ function App() {
       "data-theme",
       darkMode ? "dark" : "light"
     );
-
   }, [darkMode]);
+
+  if (!user) {
+    return <AuthPage />;
+  }
 
   return (
     <>
@@ -285,6 +289,26 @@ function App() {
           <Route
             path="/product/:id"
             element={<ProductDetails />}
+          />
+
+          <Route
+            path="/cart"
+            element={<CartPage />}
+          />
+
+          <Route
+            path="/favorites"
+            element={<FavoritesPage />}
+          />
+
+          <Route
+            path="/auth"
+            element={<Navigate to="/" replace />}
+          />
+
+          <Route
+            path="*"
+            element={<Navigate to="/" replace />}
           />
 
         </Routes>

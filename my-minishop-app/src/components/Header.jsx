@@ -1,5 +1,9 @@
 import { NavLink, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
+import { useFavorites } from "../context/FavoritesContext";
+
 function Header({
   darkMode,
   setDarkMode,
@@ -8,6 +12,17 @@ function Header({
   categories,
 }) {
   const navigate = useNavigate();
+
+  const { user, logout } = useAuth();
+
+  const { cartCount } = useCart();
+
+  const { favorites } = useFavorites();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
 
   const handleCategoryChange = (e) => {
     const category = e.target.value;
@@ -28,6 +43,7 @@ function Header({
         </NavLink>
 
         <nav className="navigation">
+
           <NavLink to="/" end>
             Home
           </NavLink>
@@ -48,6 +64,7 @@ function Header({
               </option>
             ))}
           </select>
+
         </nav>
 
         <div className="header-actions">
@@ -60,6 +77,49 @@ function Header({
             className="search-input"
           />
 
+          <NavLink to="/favorites" className="header-icon">
+            ❤️
+            <span className="header-count">
+              {favorites.length}
+            </span>
+          </NavLink>
+
+          <NavLink to="/cart" className="header-icon">
+            🛒
+            <span className="header-count">
+              {cartCount}
+            </span>
+          </NavLink>
+
+          {user ? (
+            <div className="user-actions">
+
+              <span className="user-greeting">
+                Hello, {user.name}
+              </span>
+
+              <button
+                className="logout-button"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+
+            </div>
+          ) : (
+            <div className="auth-actions">
+
+              <NavLink to="/auth" className="login-link">
+                Login
+              </NavLink>
+
+              <NavLink to="/auth" className="register-link">
+                Register
+              </NavLink>
+
+            </div>
+          )}
+
           <button
             className="theme-button"
             onClick={() => setDarkMode(!darkMode)}
@@ -68,7 +128,6 @@ function Header({
           </button>
 
         </div>
-
       </div>
     </header>
   );

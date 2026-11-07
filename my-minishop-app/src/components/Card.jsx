@@ -1,9 +1,31 @@
 import { Link } from "react-router-dom";
 import styles from "./Card.module.css";
 
+import { useCart } from "../context/CartContext";
+import { useFavorites } from "../context/FavoritesContext";
+
 function Card({ product }) {
+  const { addToCart } = useCart();
+
+  const {
+    toggleFavorite,
+    isFavorite,
+  } = useFavorites();
+
+  const favorite = isFavorite(product.id);
+
   return (
     <div className={styles.card}>
+
+      <button
+        className={`${styles.favoriteButton} ${
+          favorite ? styles.favoriteActive : ""
+        }`}
+        onClick={() => toggleFavorite(product)}
+        aria-label="Add to favorites"
+      >
+        {favorite ? "❤️" : "🤍"}
+      </button>
 
       <Link
         to={`/product/${product.id}`}
@@ -43,8 +65,14 @@ function Card({ product }) {
 
         </div>
 
-      </div>
+        <button
+          className={styles.addToCart}
+          onClick={() => addToCart(product)}
+        >
+          🛒 Add to Cart
+        </button>
 
+      </div>
     </div>
   );
 }
